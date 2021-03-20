@@ -1,18 +1,14 @@
 import { Fragment } from 'react';
-import { useRouter } from 'next/router';
-import { getEventById } from '../../dummy-data';
+
+import { getEventById, getAllEvents } from '../../helpers/api-util';
 import Button from '../../components/ui/button';
 import ErrorAlert from '../../components/ui/error-alert';
 import EventSummary from '../../components/event-detail/event-summary';
 import EventContent from '../../components/event-detail/event-content';
 import EventLogistics from '../../components/event-detail/event-logistics';
 
-function EventDetail() {
-  const router = useRouter();
-
-  const eventId = router.query.id;
-  const event = getEventById(eventId);
-
+function EventDetail(props) {
+  const event = props.events;
   if (!event) {
     return (
       <ErrorAlert>
@@ -37,6 +33,27 @@ function EventDetail() {
       </Button>
     </Fragment>
   );
+}
+
+export async function getStaticProps(context) {
+  const eventId = context.params.id;
+  const data = await getEventById(eventId);
+  return {
+    props: {
+      events: data,
+    },
+  };
+}
+
+export async function getStaticPaths() {
+  const data = await getAllEvents();
+
+  const paths = data.map((event) => ({ params: { id: event.id } }));
+
+  return {
+    paths: paths,
+    fallback: false,
+  };
 }
 
 export default EventDetail;
